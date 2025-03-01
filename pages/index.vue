@@ -9,7 +9,7 @@
             <p>{{ singlePost.body }}</p>
             <button @click="existingPost = singlePost">Edit</button>
             <div v-if="existingPost.id === singlePost.id">
-                <input v-model="existingPost.userId" placeholder="User Id" />
+                <input v-model="existingPost.userId" type="number" />
                 <input v-model="existingPost.title" placeholder="Title" />
                 <input v-model="existingPost.body" placeholder="Body" />
                 <button @click="editPost(singlePost.id, existingPost)">Edit Post</button>
@@ -26,7 +26,7 @@
             <p>{{ post.body }}</p>
             <button @click="existingPost = post">Edit</button>
             <div v-if="existingPost.id === post.id">
-                <input v-model="existingPost.userId" placeholder="User Id" />
+                <input v-model="existingPost.userId" type="number" />
                 <input v-model="existingPost.title" placeholder="Title" />
                 <input v-model="existingPost.body" placeholder="Body" />
                 <button @click="editPost(post.id, existingPost)">Edit Post</button>
@@ -35,7 +35,7 @@
     </div>
     <div>
         <h2>New Post</h2>
-        <input v-model="newPost.userId" placeholder="User Id" />
+        <input v-model="newPost.userId" type="number" />
         <input v-model="newPost.title" placeholder="Title" />
         <input v-model="newPost.body" placeholder="Body" />
         <button @click="addPost(newPost)">Add Post</button>
@@ -45,6 +45,8 @@
 <script setup lang="ts">
 import CallAPI from '../components/CallApi'
 import axios from 'axios'
+import { mkConfig, generateCsv, download } from "export-to-csv";
+const csvConfig = mkConfig({ useKeysAsHeaders: true });
 interface Post {
     userId: number
     id: number
@@ -90,24 +92,37 @@ const addPost = async (value:Post) => {
     fetch('https://jsonplaceholder.typicode.com/posts', {
         method: 'POST',
         body: JSON.stringify({
-            value
+            ...value
         }),
         headers: {
             'Content-type': 'application/json; charset=UTF-8',
         },
-    })
+    }).then(response => {
+        newPost.value = {
+            userId: 0,
+            title: '',
+            body: '',
+        }
+    }).then(getPosts())
 }
 
 const editPost = async (id,value) => {
     fetch('https://jsonplaceholder.typicode.com/posts/' + id, {
         method: 'PUT',
         body: JSON.stringify({
-            value
+            ...value
         }),
         headers: {
             'Content-type': 'application/json; charset=UTF-8',
         },
-    })
+    }).then(response => {
+        existingPost.value = {
+            id: 0,
+            userId: 0,
+            title: '',
+            body: '',
+        }
+    }).then(getPosts())
 }
 
 const fetchSinglePost = (id:String) => {
